@@ -18,6 +18,8 @@ int	is_glob_match(const char *pattern, const char *text)
 		return (1);
 	if (*pattern == '*')
 	{
+		while (*(pattern + 1) == '*')
+			pattern++;
 		if (is_glob_match(pattern + 1, text))
 			return (1);
 		if (*text != '\0')

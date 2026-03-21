@@ -55,7 +55,10 @@ static int	process_input(t_shell *shell, char *line)
 	ft_dlstclear(&shell->token_list, free_tokens);
 	shell->token_list = NULL;
 	if (!shell->ast)
+	{
+		shell->exit_status = 2;
 		return (1);
+	}
 	heredoc_result = handle_heredocs(shell->ast, shell);
 	if (handle_heredoc_result(shell, heredoc_result))
 		return (1);
