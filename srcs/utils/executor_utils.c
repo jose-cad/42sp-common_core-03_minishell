@@ -19,6 +19,17 @@ t_ast	*get_command_node(t_ast *node)
 	return (node);
 }
 
+t_ast	*skip_redirs(t_ast *node)
+{
+	while (node->left && (node->type == NODE_REDIR_IN
+			|| node->type == NODE_REDIR_OUT
+			|| node->type == NODE_REDIR_APPEND
+			|| node->type == NODE_HEREDOC
+			|| node->type == NODE_REDIR_ERR))
+		node = node->left;
+	return (node);
+}
+
 int	save_std_fds(int *sv_in, int *sv_out, int *sv_err)
 {
 	*sv_in = dup(STDIN_FILENO);
@@ -27,12 +38,12 @@ int	save_std_fds(int *sv_in, int *sv_out, int *sv_err)
 	if (*sv_in == -1 || *sv_out == -1 || *sv_err == -1)
 	{
 		perror("dup");
-		if (*sv_in >= 0)
-			close(*sv_in);
-		if (*sv_out >= 0)
-			close(*sv_out);
-		if (*sv_err >= 0)
-			close(*sv_err);
+		safe_close(*sv_in);
+		safe_close(*sv_out);
+		safe_close(*sv_err);
+		*sv_in = -1;
+		*sv_out = -1;
+		*sv_err = -1;
 		return (-1);
 	}
 	return (0);

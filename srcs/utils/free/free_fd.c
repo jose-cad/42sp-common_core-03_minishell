@@ -12,14 +12,35 @@
 
 #include "minishell.h"
 
-void	close_all_fds_except_std(void)
+void	close_heredoc_fds(t_ast *node)
 {
-	int	fd;
-
-	fd = 3;
-	while (fd < 256)
+	if (!node)
+		return ;
+	if (node->type == NODE_HEREDOC && node->heredoc_fd >= 0)
 	{
-		close(fd);
-		fd++;
+		close(node->heredoc_fd);
+		node->heredoc_fd = -1;
 	}
+	close_heredoc_fds(node->left);
+	close_heredoc_fds(node->right);
+}
+
+void	close_saved_fds(t_shell *shell)
+{
+	int	i;
+
+	i = 0;
+	while (i < 3)
+	{
+		safe_close(shell->saved_fds[i]);
+		shell->saved_fds[i] = -1;
+		i++;
+	}
+}
+
+void	close_std_fds(void)
+{
+	close(STDIN_FILENO);
+	close(STDOUT_FILENO);
+	close(STDERR_FILENO);
 }

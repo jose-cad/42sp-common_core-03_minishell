@@ -34,7 +34,8 @@ void	clean_exit_child(t_shell *shell, int status)
 {
 	if (shell->ast)
 		ast_free(shell->ast);
-	close_all_fds_except_std();
+	close_saved_fds(shell);
 	cleanup_shell(shell);
+	close_std_fds();
 	exit(status);
 }

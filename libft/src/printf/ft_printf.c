@@ -14,20 +14,30 @@
 
 static void	ft_print_null_char(t_buffer *buffer, t_format *fmt);
 static void	ft_print_formatted(t_format *fmt, va_list args, t_buffer *buffer);
-static void	ft_handle_literal(const char *format, int *i, t_buffer *buffer);
 static void	ft_handle_percent_and_formatted(const char *format, int *i,
 				t_print_context *ctx, va_list args);
 
 int	ft_printf(const char *format, ...)
 {
-	va_list			args;
+	va_list	args;
+	int		ret;
+
+	va_start(args, format);
+	ret = ft_vdprintf(1, format, args);
+	va_end(args);
+	return (ret);
+}
+
+int	ft_vdprintf(int fd, const char *format, va_list args)
+{
 	t_buffer		buffer;
 	t_format		fmt;
 	int				i;
 	t_print_context	ctx;
 
-	va_start(args, format);
-	buffer.fd = 1;
+	if (fd < 0 || !format)
+		return (-1);
+	buffer.fd = fd;
 	buffer.index = 0;
 	buffer.printed_count = 0;
 	i = 0;
@@ -38,9 +48,8 @@ int	ft_printf(const char *format, ...)
 		if (format[i] == '%')
 			ft_handle_percent_and_formatted(format, &i, &ctx, args);
 		else
-			ft_handle_literal(format, &i, &buffer);
+			ft_add_to_buffer(&buffer, format[i++]);
 	}
-	va_end(args);
 	ft_flush_buffer(&buffer);
 	return (buffer.printed_count);
 }
@@ -80,16 +89,11 @@ static void	ft_print_formatted(t_format *fmt, va_list args, t_buffer *buffer)
 	}
 }
 
-static void	ft_handle_literal(const char *format, int *i, t_buffer *buffer)
-{
-	ft_add_to_buffer(buffer, format[*i]);
-	(*i)++;
-}
-
 static void	ft_handle_percent_and_formatted(const char *format, int *i,
 				t_print_context *ctx, va_list args)
 {
-	ft_parse_format(format, i, ctx->fmt, args);
+	ft_parse_format(format, i, ctx->fmt);
 	ft_print_formatted(ctx->fmt, args, ctx->buffer);
-	(*i)++;
+	if (format[*i] != '\0')
+		(*i)++;
 }

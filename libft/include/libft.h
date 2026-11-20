@@ -17,6 +17,10 @@
 #  define GNL_SIZE 42
 # endif
 
+# ifndef GNL_MAX_FD
+#  define GNL_MAX_FD 1024
+# endif
+
 # include "../src/printf/ft_printf.h"
 # include <unistd.h>
 # include <stdlib.h>
@@ -29,13 +33,12 @@ unsigned long	ft_atohex_ptr(const char *hex_str);
 unsigned int	ft_atohex(const char *str);
 double			ft_atof(const char *str);
 long			ft_atol(const char *nptr);
+unsigned long	ft_atoul_base(const char *str, const char *base);
 int				ft_base_is_valid(const char *base);
 char			*ft_bin_toa(unsigned int nbr);
 void			ft_bzero(void *s, size_t n);
 void			*ft_calloc(size_t nmemb, size_t size);
-size_t			count_digits(unsigned int nbr, size_t base_len);
 char			*ft_ftoa(double n, int precision);
-unsigned long	ft_hextoa_ptr(const char *hex_str);
 char			*ft_hextoa_lower(unsigned int nbr);
 char			*ft_hextoa_upper(unsigned int nbr);
 int				ft_isalnum(int c);
@@ -47,6 +50,7 @@ int				ft_isnumeric(const char *str);
 int				ft_isprint(int c);
 int				ft_isspace(int c);
 char			*ft_itoa(int n);
+char			*ft_itoa_base(int nbr, const char *base);
 void			*ft_memchr(const void *s, int c, size_t n);
 int				ft_memcmp(const void *s1, const void *s2, size_t n);
 void			*ft_memcpy(void *dest, const void *src, size_t n);
@@ -119,10 +123,17 @@ void			ft_dlstremove(t_dlist **head, t_dlist *to_remove,
 					void (*del)(void *));
 
 // gnl
+typedef struct s_gnl
+{
+	char	*buf;
+	size_t	start;
+	size_t	len;
+	size_t	cap;
+}	t_gnl;
+
 char			*get_next_line(int fd);
-void			*gnl_free(void *ptr1, void *ptr2);
-size_t			gnl_strlen(const char *s);
-char			*gnl_strchr(const char *s, int c);
-char			*gnl_strjoin(char *s1, char *s2);
+void			*gnl_reset(t_gnl *s);
+void			gnl_copy(char *dst, const char *src, size_t n);
+int				gnl_grow(t_gnl *s);
 
 #endif

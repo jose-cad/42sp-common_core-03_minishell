@@ -29,7 +29,7 @@ char	*extract_quoted_word(char *line, int *i)
 		ft_putendl_fd("minishell: syntax error: unclosed quote", 2);
 		return (NULL);
 	}
-	content = ft_substr(line, start, end - start + 1);
+	content = dup_slice(line + start, end - start + 1);
 	*i = end + 1;
 	return (content);
 }

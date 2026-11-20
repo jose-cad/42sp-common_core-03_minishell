@@ -12,41 +12,50 @@
 
 #include "minishell.h"
 
-static int	open_infile(t_ast *node);
+static int	open_infile(char *filename);
 static int	apply_heredoc(t_ast *node);
-static int	apply_node_redirection(t_ast *node);
+static int	apply_node_redirection(t_ast *node, t_shell *shell);
 
 int	apply_redirections(t_ast *node, t_shell *shell)
 {
 	int	status;
 
-	(void)shell;
-	if (!node)
+	if (!node || node->type == NODE_SUBSHELL)
 		return (0);
 	if (node->left)
 	{
 		if (apply_redirections(node->left, shell) != 0)
 			return (1);
 	}
-	status = apply_node_redirection(node);
+	status = apply_node_redirection(node, shell);
 	if (node->right && status == 0)
 		status = apply_redirections(node->right, shell);
 	return (status);
 }
 
-static int	apply_node_redirection(t_ast *node)
+static int	apply_node_redirection(t_ast *node, t_shell *shell)
 {
-	if (node->type == NODE_REDIR_IN)
-		return (open_infile(node));
-	else if (node->type == NODE_REDIR_OUT)
-		return (open_outfile_trunc(node));
-	else if (node->type == NODE_REDIR_APPEND)
-		return (open_outfile_append(node));
-	else if (node->type == NODE_HEREDOC)
+	char	*file;
+	int		status;
+
+	if (node->type == NODE_HEREDOC)
 		return (apply_heredoc(node));
-	else if (node->type == NODE_REDIR_ERR)
-		return (open_errfile_trunc(node));
-	return (0);
+	if (node->type != NODE_REDIR_IN && node->type != NODE_REDIR_OUT
+		&& node->type != NODE_REDIR_APPEND && node->type != NODE_REDIR_ERR)
+		return (0);
+	file = resolve_redir_file(node, shell);
+	if (!file)
+		return (-1);
+	if (node->type == NODE_REDIR_IN)
+		status = open_infile(file);
+	else if (node->type == NODE_REDIR_OUT)
+		status = open_outfile_trunc(file);
+	else if (node->type == NODE_REDIR_APPEND)
+		status = open_outfile_append(file);
+	else
+		status = open_errfile_trunc(file);
+	free(file);
+	return (status);
 }
 
 static int	apply_heredoc(t_ast *node)
@@ -60,29 +69,25 @@ static int	apply_heredoc(t_ast *node)
 	{
 		perror("dup2");
 		close(node->heredoc_fd);
+		node->heredoc_fd = -1;
 		return (-1);
 	}
 	close(node->heredoc_fd);
+	node->heredoc_fd = -1;
 	return (0);
 }
 
-static int	open_infile(t_ast *node)
+static int	open_infile(char *filename)
 {
 	int		fd;
-	char	*clean_filename;
 
-	clean_filename = process_filename(node->filename);
-	if (!clean_filename)
-		return (-1);
-	fd = open(clean_filename, O_RDONLY);
+	fd = open(filename, O_RDONLY);
 	if (fd < 0)
 	{
 		ft_putstr_fd("minishell: ", 2);
-		perror(clean_filename);
-		free(clean_filename);
+		perror(filename);
 		return (-1);
 	}
-	free(clean_filename);
 	if (dup2(fd, STDIN_FILENO) == -1)
 	{
 		perror("dup2");

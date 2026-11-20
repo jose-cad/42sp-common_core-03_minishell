@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <stdlib.h>
+#include "libft.h"
 
 static int	ft_count_words(const char *str, char sep);
 static char	*ft_get_word(const char *str, char sep);
@@ -19,11 +19,11 @@ static void	ft_free_split(char **arr, int last);
 char	**ft_split(char const *s, char c)
 {
 	char	**arr;
-	int		words;
 	int		i;
 
-	words = ft_count_words(s, c);
-	arr = malloc(sizeof(char *) * (words + 1));
+	if (!s)
+		return (NULL);
+	arr = malloc(sizeof(char *) * (ft_count_words(s, c) + 1));
 	if (!arr)
 		return (NULL);
 	i = 0;

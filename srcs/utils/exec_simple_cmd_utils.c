@@ -59,42 +59,25 @@ int	handle_redirect_only(t_ast *node, t_shell *shell)
 
 int	is_empty_command(char **argv)
 {
-	int	i;
-
-	if (!argv)
-		return (1);
-	i = 0;
-	while (argv[i])
-	{
-		if (argv[i][0] != '\0')
-			return (0);
-		i++;
-	}
-	return (1);
+	return (!argv || !argv[0]);
 }
 
 int	exec_builtin_parent(t_ast *node, t_shell *shell)
 {
-	int		sv_in;
-	int		sv_out;
-	int		sv_err;
+	int		*sv;
 	int		status;
 	t_ast	*cmd_node;
 
-	if (save_std_fds(&sv_in, &sv_out, &sv_err) == -1)
+	sv = shell->saved_fds;
+	if (save_std_fds(&sv[0], &sv[1], &sv[2]) == -1)
 		return (1);
-	if (apply_redirections(node, shell) != 0)
-	{
-		restore_std_fds(sv_in, sv_out, sv_err);
-		return (1);
-	}
+	status = 1;
 	cmd_node = get_command_node(node);
-	if (!cmd_node)
-	{
-		restore_std_fds(sv_in, sv_out, sv_err);
-		return (1);
-	}
-	status = exec_builtin(cmd_node, shell);
-	restore_std_fds(sv_in, sv_out, sv_err);
+	if (apply_redirections(node, shell) == 0 && cmd_node)
+		status = exec_builtin(cmd_node, shell);
+	restore_std_fds(sv[0], sv[1], sv[2]);
+	sv[0] = -1;
+	sv[1] = -1;
+	sv[2] = -1;
 	return (status);
 }

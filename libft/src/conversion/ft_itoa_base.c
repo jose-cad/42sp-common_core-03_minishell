@@ -12,11 +12,10 @@
 
 #include "libft.h"
 
-static int	ft_check_base(char *base);
 static int	ft_nbrlen(unsigned int n, int b_len);
-static void	ft_fill_edge(char *result, char *base, int n_len, int nbr);
+static void	ft_fill_edge(char *result, const char *base, int n_len, int nbr);
 
-char	*ft_itoa_base(int nbr, char *base)
+char	*ft_itoa_base(int nbr, const char *base)
 {
 	char			*result;
 	int				b_len;
@@ -27,9 +26,9 @@ char	*ft_itoa_base(int nbr, char *base)
 		n = (unsigned int)(-(long)nbr);
 	else
 		n = nbr;
-	b_len = ft_check_base(base);
-	if (b_len < 2)
+	if (!ft_base_is_valid(base))
 		return (NULL);
+	b_len = ft_strlen(base);
 	n_len = ft_nbrlen(n, b_len);
 	if (nbr < 0)
 		n_len++;
@@ -45,7 +44,7 @@ char	*ft_itoa_base(int nbr, char *base)
 	return (result);
 }
 
-static void	ft_fill_edge(char *result, char *base, int n_len, int nbr)
+static void	ft_fill_edge(char *result, const char *base, int n_len, int nbr)
 {
 	result[n_len] = '\0';
 	if (nbr < 0)
@@ -67,26 +66,4 @@ static int	ft_nbrlen(unsigned int n, int b_len)
 		n_len++;
 	}
 	return (n_len);
-}
-
-static int	ft_check_base(char *base)
-{
-	int	i;
-	int	j;
-
-	i = 0;
-	while (base[i])
-	{
-		j = i + 1;
-		while (base[j])
-		{
-			if (base[i] == base[j])
-				return (0);
-			j++;
-		}
-		if (base[i] == '+' || base[i] == '-' || ft_isspace(base[i]))
-			return (0);
-		i++;
-	}
-	return (i);
 }

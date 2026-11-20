@@ -15,7 +15,6 @@
 static void	execute_external_cmd(t_ast *cmd_node, t_shell *shell);
 static void	child_process(t_ast *node, t_shell *shell);
 static void	handle_path_error_child(char *cmd, char **envp, t_shell *shell);
-static void	print_signal_output(int status);
 
 int	execute_forked_cmd(t_ast *node, t_shell *shell)
 {
@@ -62,7 +61,7 @@ static void	execute_external_cmd(t_ast *cmd_node, t_shell *shell)
 		free(path);
 		clean_exit_child(shell, 126);
 	}
-	close_all_fds_except_std();
+	close_heredoc_fds(shell->ast);
 	execve(path, cmd_node->argv, envp);
 	perror("execve");
 	free_char_array(envp);
@@ -103,14 +102,15 @@ static void	handle_path_error_child(char *cmd, char **envp, t_shell *shell)
 		else
 			ft_dprintf(2, "minishell: %s: command not found\n", cmd);
 	}
+	else if (!get_env_value("PATH", shell))
+		ft_dprintf(2, "minishell: %s: No such file or directory\n", cmd);
 	else
 		ft_dprintf(2, "minishell: %s: command not found\n", cmd);
-	close_all_fds_except_std();
 	free_char_array(envp);
 	clean_exit_child(shell, 127);
 }
 
-static void	print_signal_output(int status)
+void	print_signal_output(int status)
 {
 	if (WIFSIGNALED(status) && isatty(STDIN_FILENO) && isatty(STDOUT_FILENO))
 	{

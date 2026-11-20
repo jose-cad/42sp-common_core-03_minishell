@@ -16,9 +16,8 @@ static int	is_flag(char c);
 static void	ft_parse_flags(const char *s, int *i, t_format *fmt);
 static void	ft_parse_width_precision(const char *s, int *i, t_format *fmt);
 
-int	ft_parse_format(const char *s, int *i, t_format *fmt, va_list args)
+int	ft_parse_format(const char *s, int *i, t_format *fmt)
 {
-	(void)args;
 	(*i)++;
 	fmt->flag_minus = 0;
 	fmt->flag_zero = 0;

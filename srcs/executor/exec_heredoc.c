@@ -15,6 +15,7 @@
 static int	read_heredoc_input(t_ast *node, t_shell *shell);
 static int	handle_eof_heredoc(t_ast *node, int *pipe_fds);
 static int	process_heredoc_loop(t_ast *node, int write_fd, t_shell *shell);
+static int	read_heredoc_tty(t_ast *node, int write_fd, t_shell *shell);
 
 int	handle_heredocs(t_ast *node, t_shell *shell)
 {
@@ -25,6 +26,7 @@ int	handle_heredocs(t_ast *node, t_shell *shell)
 	result = handle_heredocs(node->left, shell);
 	if (result != 0)
 		return (result);
+	result = handle_heredocs(node->right, shell);
 	if (result != 0)
 		return (result);
 	if (node->type == NODE_HEREDOC)
@@ -43,11 +45,12 @@ int	handle_heredocs(t_ast *node, t_shell *shell)
 
 static int	handle_eof_heredoc(t_ast *node, int *pipe_fds)
 {
-	write(STDOUT_FILENO, "\n", 1);
-	write(STDOUT_FILENO, "minishell: warning: here-document ", 34);
-	write(STDOUT_FILENO, "delimited by end-of-file (wanted `", 35);
-	write(STDOUT_FILENO, node->filename, ft_strlen(node->filename));
-	write(STDOUT_FILENO, "')\n", 3);
+	if (isatty(STDIN_FILENO))
+		write(STDOUT_FILENO, "\n", 1);
+	write(STDERR_FILENO, "minishell: warning: here-document ", 34);
+	write(STDERR_FILENO, "delimited by end-of-file (wanted `", 34);
+	write(STDERR_FILENO, node->filename, ft_strlen(node->filename));
+	write(STDERR_FILENO, "')\n", 3);
 	close(pipe_fds[1]);
 	node->heredoc_fd = pipe_fds[0];
 	return (0);
@@ -61,7 +64,8 @@ static int	process_heredoc_loop(t_ast *node, int write_fd, t_shell *shell)
 	{
 		if (g_signal == SIGINT)
 			return (1);
-		write(STDOUT_FILENO, "> ", 2);
+		if (isatty(STDIN_FILENO))
+			write(STDOUT_FILENO, "> ", 2);
 		line = read_heredoc_line();
 		if (!line)
 		{
@@ -75,18 +79,30 @@ static int	process_heredoc_loop(t_ast *node, int write_fd, t_shell *shell)
 	return (0);
 }
 
+static int	read_heredoc_tty(t_ast *node, int write_fd, t_shell *shell)
+{
+	struct termios	orig_tty;
+	int				tty_saved;
+	int				result;
+
+	tty_saved = set_heredoc_tty(&orig_tty);
+	result = process_heredoc_loop(node, write_fd, shell);
+	if (tty_saved)
+		tcsetattr(STDIN_FILENO, TCSANOW, &orig_tty);
+	return (result);
+}
+
 static int	read_heredoc_input(t_ast *node, t_shell *shell)
 {
 	int	pipe_fds[2];
 	int	result;
 	int	return_value;
 
-	if (pipe(pipe_fds) == -1)
-		return (perror("pipe"), 1);
+	if (open_heredoc_file(pipe_fds) == -1)
+		return (perror("minishell: heredoc"), 1);
 	g_signal = 0;
 	setup_heredoc_signals();
-	set_heredoc_tty();
-	result = process_heredoc_loop(node, pipe_fds[1], shell);
+	result = read_heredoc_tty(node, pipe_fds[1], shell);
 	if (result == 1)
 		return_value = handle_heredoc_interrupt(pipe_fds);
 	else if (result == 2)

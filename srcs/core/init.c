@@ -57,22 +57,32 @@ void	init_shell(t_shell *shell, char **envp)
 {
 	int			i;
 	t_env_var	*var;
+	t_dlist		*node;
 
 	shell->env_list = NULL;
 	shell->token_list = NULL;
 	shell->exit_status = 0;
+	shell->is_child = 0;
+	shell->saved_fds[0] = -1;
+	shell->saved_fds[1] = -1;
+	shell->saved_fds[2] = -1;
 	i = 0;
 	while (envp && envp[i])
 	{
-		var = create_env_var(envp[i]);
+		var = create_env_var(envp[i++]);
+		node = NULL;
 		if (var)
-			ft_dlstadd_back(&shell->env_list, ft_dlstnew(var));
-		i++;
+			node = ft_dlstnew(var);
+		if (node)
+			ft_dlstadd_back(&shell->env_list, node);
+		else
+			free_env_var(var);
 	}
 }
 
 void	cleanup_shell(t_shell *shell)
 {
+	rl_clear_history();
 	if (shell->env_list)
 		ft_dlstclear(&shell->env_list, free_env_var);
 	if (shell->token_list)

@@ -12,14 +12,35 @@
 
 #include "libft.h"
 
+static int	ft_hex_digit(char c);
+
 unsigned long	ft_atohex_ptr(const char *hex_str)
 {
-	long	result;
+	unsigned long	result;
 
 	if (!hex_str)
 		return (0);
-	result = ft_atoi_base(hex_str, "0123456789abcdef");
-	if (result < 0)
+	while (ft_isspace(*hex_str))
+		hex_str++;
+	if (*hex_str == '-')
 		return (0);
-	return ((unsigned long)result);
+	if (*hex_str == '+')
+		hex_str++;
+	result = 0;
+	while (ft_hex_digit(*hex_str) != -1)
+	{
+		result = result * 16 + ft_hex_digit(*hex_str);
+		hex_str++;
+	}
+	return (result);
+}
+
+static int	ft_hex_digit(char c)
+{
+	c = ft_tolower((unsigned char)c);
+	if (c >= '0' && c <= '9')
+		return (c - '0');
+	if (c >= 'a' && c <= 'f')
+		return (c - 'a' + 10);
+	return (-1);
 }

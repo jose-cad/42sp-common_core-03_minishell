@@ -12,19 +12,20 @@
 
 #include "minishell.h"
 
-static void			create_new_var(t_shell *shell, char *key, char *value);
-static void			update_existing_var(t_env_var *var, char *value);
+static int			create_new_var(t_shell *shell, char *key, char *value);
+static int			update_existing_var(t_env_var *var, char *value);
 static t_env_var	*find_env_var(t_shell *shell, const char *key);
 
-void	set_env_var(t_shell *shell, char *key, char *value)
+int	set_env_var(t_shell *shell, char *key, char *value)
 {
 	t_env_var	*var;
 
 	var = find_env_var(shell, key);
-	if (var)
-		update_existing_var(var, value);
-	else
-		create_new_var(shell, key, value);
+	if (var && value)
+		return (update_existing_var(var, value));
+	if (!var)
+		return (create_new_var(shell, key, value));
+	return (0);
 }
 
 int	print_all_env(t_shell *shell)
@@ -36,7 +37,10 @@ int	print_all_env(t_shell *shell)
 	while (lst)
 	{
 		var = lst->content;
-		ft_printf("declare -x %s=\"%s\"\n", var->key, var->value);
+		if (var->value)
+			ft_printf("declare -x %s=\"%s\"\n", var->key, var->value);
+		else
+			ft_printf("declare -x %s\n", var->key);
 		lst = lst->next;
 	}
 	return (0);
@@ -58,18 +62,35 @@ static t_env_var	*find_env_var(t_shell *shell, const char *key)
 	return (NULL);
 }
 
-static void	update_existing_var(t_env_var *var, char *value)
+static int	update_existing_var(t_env_var *var, char *value)
 {
+	char	*new_value;
+
+	new_value = ft_strdup(value);
+	if (!new_value)
+		return (1);
 	free(var->value);
-	var->value = ft_strdup(value);
+	var->value = new_value;
+	return (0);
 }
 
-static void	create_new_var(t_shell *shell, char *key, char *value)
+static int	create_new_var(t_shell *shell, char *key, char *value)
 {
 	t_env_var	*new;
+	t_dlist		*node;
 
 	new = malloc(sizeof(t_env_var));
+	if (!new)
+		return (1);
 	new->key = ft_strdup(key);
-	new->value = ft_strdup(value);
-	ft_dlstadd_back(&shell->env_list, ft_dlstnew(new));
+	new->value = NULL;
+	if (value)
+		new->value = ft_strdup(value);
+	node = NULL;
+	if (new->key && (!value || new->value))
+		node = ft_dlstnew(new);
+	if (!node)
+		return (free_env_var(new), 1);
+	ft_dlstadd_back(&shell->env_list, node);
+	return (0);
 }

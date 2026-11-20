@@ -1,90 +1,55 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   get_next_line_utils_bonus.c                        :+:      :+:    :+:   */
+/*   get_next_line_utils.c                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jota <jota@student.42sp.org.br>             +#+  +:+       +#+       */
+/*   By: jose-cad <jose-cad@student.42sp.org.br>     +#+  +:+       +#+       */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/07/27 21:45:00 by jota              #+#    #+#             */
-/*   Updated: 2025/07/27 22:00:00 by jota             ###   ########.fr       */
+/*   Created: 2025/07/27 21:45:00 by jose-cad          #+#    #+#             */
+/*   Updated: 2025/07/27 22:00:00 by jose-cad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "libft.h"
 
-static char	*gnl_join_and_free(char *s1, char *s2, size_t len1, size_t len2);
-
-char	*gnl_strjoin(char *s1, char *s2)
+void	*gnl_reset(t_gnl *s)
 {
-	size_t	len1;
-	size_t	len2;
-
-	if (!s1)
-	{
-		s1 = malloc(1);
-		if (!s1)
-			return (NULL);
-		s1[0] = '\0';
-	}
-	len1 = gnl_strlen(s1);
-	len2 = gnl_strlen(s2);
-	return (gnl_join_and_free(s1, s2, len1, len2));
-}
-
-static char	*gnl_join_and_free(char *s1, char *s2, size_t len1, size_t len2)
-{
-	char	*res;
-	size_t	i;
-
-	res = malloc(len1 + len2 + 1);
-	if (!res)
-	{
-		free(s1);
-		return (NULL);
-	}
-	i = -1;
-	while (++i < len1)
-		res[i] = s1[i];
-	i = -1;
-	while (++i < len2)
-		res[len1 + i] = s2[i];
-	res[len1 + len2] = '\0';
-	free(s1);
-	return (res);
-}
-
-char	*gnl_strchr(const char *s, int c)
-{
-	if (!s)
-		return (NULL);
-	while (*s)
-	{
-		if (*s == (char)c)
-			return ((char *)s);
-		s++;
-	}
-	if ((char)c == '\0')
-		return ((char *)s);
+	free(s->buf);
+	s->buf = NULL;
+	s->start = 0;
+	s->len = 0;
+	s->cap = 0;
 	return (NULL);
 }
 
-size_t	gnl_strlen(const char *s)
+void	gnl_copy(char *dst, const char *src, size_t n)
 {
-	size_t	i;
+	while (n--)
+		*dst++ = *src++;
+}
 
-	if (!s)
+int	gnl_grow(t_gnl *s)
+{
+	char	*new_buf;
+	size_t	rest;
+
+	if (s->cap - s->len >= (size_t)GNL_SIZE)
+		return (1);
+	rest = s->len - s->start;
+	new_buf = s->buf;
+	if (s->cap < rest * 2 + (size_t)GNL_SIZE)
+		new_buf = malloc(rest * 2 + (size_t)GNL_SIZE);
+	if (!new_buf)
 		return (0);
-	i = 0;
-	while (s[i])
-		i++;
-	return (i);
-}
-
-void	*gnl_free(void *ptr1, void *ptr2)
-{
-	if (ptr1)
-		free(ptr1);
-	if (ptr2)
-		free(ptr2);
-	return (NULL);
+	if (rest)
+		gnl_copy(new_buf, s->buf + s->start, rest);
+	if (new_buf != s->buf)
+	{
+		free(s->buf);
+		s->buf = new_buf;
+		s->cap = rest * 2 + (size_t)GNL_SIZE;
+	}
+	s->start = 0;
+	s->len = rest;
+	return (1);
 }

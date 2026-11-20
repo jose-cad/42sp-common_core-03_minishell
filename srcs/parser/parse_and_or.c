@@ -47,6 +47,7 @@ static t_node_type	get_operator_type(t_token *token)
 static t_ast	*create_operator_node(t_ast *left, t_dlist **tokens)
 {
 	t_ast		*right;
+	t_ast		*node;
 	t_node_type	type;
 	t_token		*token;
 
@@ -59,5 +60,11 @@ static t_ast	*create_operator_node(t_ast *left, t_dlist **tokens)
 		ast_free(left);
 		return (NULL);
 	}
-	return (ast_new_node(type, left, right));
+	node = ast_new_node(type, left, right);
+	if (!node)
+	{
+		ast_free(left);
+		ast_free(right);
+	}
+	return (node);
 }

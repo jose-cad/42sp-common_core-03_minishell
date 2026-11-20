@@ -84,7 +84,7 @@ static char	*ft_handle_sign_flag(char *str, t_format *fmt)
 	char	*tmp;
 
 	tmp = NULL;
-	if (fmt->specifier == 'd' || fmt->specifier == 'i')
+	if (fmt->specifier == 'd' || fmt->specifier == 'i' || fmt->specifier == 'f')
 	{
 		tmp = ft_apply_sign_flag(str, fmt);
 		if (!tmp)

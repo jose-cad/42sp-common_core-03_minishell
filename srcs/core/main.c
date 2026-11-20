@@ -15,6 +15,7 @@
 static void	shell_loop(t_shell *shell);
 static int	process_input(t_shell *shell, char *line);
 static int	handle_heredoc_result(t_shell *shell, int heredoc_result);
+static int	handle_lexer_error(t_shell *shell, char *line);
 
 int	main(int argc, char **argv, char **envp)
 {
@@ -26,10 +27,10 @@ int	main(int argc, char **argv, char **envp)
 	(void)argv;
 	init_shell(&shell, envp);
 	setup_signals();
-	close_all_fds_except_std();
 	shell_loop(&shell);
 	exit_status = shell.exit_status;
 	cleanup_shell(&shell);
+	close_std_fds();
 	return (exit_status);
 }
 
@@ -44,13 +45,24 @@ static int	handle_heredoc_result(t_shell *shell, int heredoc_result)
 	return (0);
 }
 
+static int	handle_lexer_error(t_shell *shell, char *line)
+{
+	int	i;
+
+	i = 0;
+	skip_spaces(line, &i);
+	if (line[i])
+		shell->exit_status = 2;
+	return (1);
+}
+
 static int	process_input(t_shell *shell, char *line)
 {
 	int	heredoc_result;
 
 	shell->token_list = lexer(line);
 	if (!shell->token_list)
-		return (1);
+		return (handle_lexer_error(shell, line));
 	shell->ast = parse_tokens(shell->token_list);
 	ft_dlstclear(&shell->token_list, free_tokens);
 	shell->token_list = NULL;

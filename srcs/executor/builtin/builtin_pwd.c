@@ -12,12 +12,19 @@
 
 #include "minishell.h"
 
-int	builtin_pwd(void)
+int	builtin_pwd(t_shell *shell)
 {
 	char	cwd[4096];
+	char	*pwd_env;
 
 	if (getcwd(cwd, sizeof(cwd)) == NULL)
 	{
+		pwd_env = get_env_value("PWD", shell);
+		if (pwd_env)
+		{
+			ft_putendl_fd(pwd_env, 1);
+			return (0);
+		}
 		perror("pwd");
 		return (1);
 	}

@@ -12,15 +12,15 @@
 
 #include "minishell.h"
 
-int	open_outfile_append(t_ast *node)
+int	open_outfile_append(char *filename)
 {
 	int	fd;
 
-	fd = open(node->filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
+	fd = open(filename, O_WRONLY | O_CREAT | O_APPEND, 0666);
 	if (fd < 0)
 	{
 		ft_putstr_fd("minishell: ", 2);
-		perror(node->filename);
+		perror(filename);
 		return (-1);
 	}
 	if (dup2(fd, STDOUT_FILENO) == -1)
@@ -33,15 +33,15 @@ int	open_outfile_append(t_ast *node)
 	return (0);
 }
 
-int	open_outfile_trunc(t_ast *node)
+int	open_outfile_trunc(char *filename)
 {
 	int	fd;
 
-	fd = open(node->filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0666);
 	if (fd < 0)
 	{
 		ft_putstr_fd("minishell: ", 2);
-		perror(node->filename);
+		perror(filename);
 		return (-1);
 	}
 	if (dup2(fd, STDOUT_FILENO) == -1)
@@ -54,15 +54,15 @@ int	open_outfile_trunc(t_ast *node)
 	return (0);
 }
 
-int	open_errfile_trunc(t_ast *node)
+int	open_errfile_trunc(char *filename)
 {
 	int	fd;
 
-	fd = open(node->filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0666);
 	if (fd < 0)
 	{
 		ft_putstr_fd("minishell: ", 2);
-		perror(node->filename);
+		perror(filename);
 		return (-1);
 	}
 	if (dup2(fd, STDERR_FILENO) == -1)

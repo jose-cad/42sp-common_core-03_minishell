@@ -14,12 +14,5 @@
 
 unsigned int	ft_atohex(const char *str)
 {
-	long	result;
-
-	if (!str)
-		return (0);
-	result = ft_atoi_base(str, "0123456789ABCDEF");
-	if (result < 0)
-		return (0);
-	return ((unsigned int)result);
+	return ((unsigned int)ft_atohex_ptr(str));
 }

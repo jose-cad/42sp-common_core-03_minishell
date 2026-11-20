@@ -13,6 +13,8 @@
 #include "libft.h"
 #include "ft_printf.h"
 
+static int	ft_prefix_len(const char *str, char pad_char);
+
 void	ft_apply_width(char **str, t_format *fmt)
 {
 	int		width;
@@ -28,13 +30,6 @@ void	ft_apply_width(char **str, t_format *fmt)
 		ft_pad_right(str, width);
 	else
 		ft_pad_left(str, width, pad_char);
-}
-
-char	ft_get_pad_char(t_format *fmt)
-{
-	if (fmt->flag_zero && !fmt->flag_minus)
-		return ('0');
-	return (' ');
 }
 
 void	ft_pad_right(char **str, int width)
@@ -71,10 +66,7 @@ void	ft_pad_left(char **str, int width, char pad_char)
 	new_str = malloc(width + 1);
 	if (!new_str)
 		return ;
-	sign_len = 0;
-	if (pad_char == '0' && ((*str)[0] == '+' || (*str)[0] == '-'
-		|| (*str)[0] == ' '))
-		sign_len = 1;
+	sign_len = ft_prefix_len(*str, pad_char);
 	i = -1;
 	while (++i < sign_len)
 		new_str[i] = (*str)[i];
@@ -94,11 +86,22 @@ char	ft_get_safe_pad_char(t_format *fmt)
 		return (' ');
 	if (fmt->has_precision && (fmt->specifier == 'd' || fmt->specifier == 'i'
 			|| fmt->specifier == 'u' || fmt->specifier == 'x'
-			|| fmt->specifier == 'X'))
+			|| fmt->specifier == 'X' || fmt->specifier == 'o'))
 		return (' ');
 	if (fmt->specifier == '%' || fmt->specifier == 's' || fmt->specifier == 'c')
 		return (' ');
 	if (fmt->flag_zero)
 		return ('0');
 	return (' ');
+}
+
+static int	ft_prefix_len(const char *str, char pad_char)
+{
+	if (pad_char != '0')
+		return (0);
+	if (str[0] == '+' || str[0] == '-' || str[0] == ' ')
+		return (1);
+	if (str[0] == '0' && (str[1] == 'x' || str[1] == 'X'))
+		return (2);
+	return (0);
 }

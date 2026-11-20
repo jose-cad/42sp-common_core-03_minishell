@@ -5,8 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: jose-cad <jose-cad@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/12/01 16:01:00 by jose-cad          #+#    #+#             */
-/*   Updated: 2025/12/01 16:01:01 by jose-cad         ###   ########.fr       */
+/*   Created: 2025/12/01 13:02:27 by jose-cad          #+#    #+#             */
+/*   Updated: 2025/12/01 13:02:32 by jose-cad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ char	*expand_variable(char *word, int *i, t_shell *shell)
 	var_len = get_var_name_len(&word[*i]);
 	if (var_len == 0)
 		return (ft_strdup("$"));
-	var_name = ft_substr(word, *i, var_len);
+	var_name = dup_slice(word + *i, var_len);
 	if (!var_name)
 		return (NULL);
 	*i += var_len;

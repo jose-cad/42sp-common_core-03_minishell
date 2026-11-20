@@ -30,7 +30,7 @@ static int	is_valid_identifier(const char *s)
 	return (1);
 }
 
-static void	split_export_arg(char *arg, char **key, char **value)
+static int	split_export_arg(char *arg, char **key, char **value)
 {
 	char	*eq;
 
@@ -45,14 +45,23 @@ static void	split_export_arg(char *arg, char **key, char **value)
 		*key = ft_strdup(arg);
 		*value = NULL;
 	}
+	if (!*key || (eq && !*value))
+	{
+		free(*key);
+		free(*value);
+		return (1);
+	}
+	return (0);
 }
 
 static int	process_one_export(t_shell *shell, char *arg)
 {
 	char	*key;
 	char	*value;
+	int		status;
 
-	split_export_arg(arg, &key, &value);
+	if (split_export_arg(arg, &key, &value))
+		return (1);
 	if (!is_valid_identifier(key))
 	{
 		ft_dprintf(2, "minishell: export: `%s': not a valid identifier\n", arg);
@@ -61,18 +70,10 @@ static int	process_one_export(t_shell *shell, char *arg)
 			free(value);
 		return (1);
 	}
-	if (value)
-	{
-		set_env_var(shell, key, value);
-		free(value);
-	}
-	else
-	{
-		if (!get_env_value(key, shell))
-			set_env_var(shell, key, "");
-	}
+	status = set_env_var(shell, key, value);
+	free(value);
 	free(key);
-	return (0);
+	return (status);
 }
 
 int	process_exports(char **argv, t_shell *shell)

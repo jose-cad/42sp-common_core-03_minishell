@@ -13,7 +13,9 @@
 #include "minishell.h"
 
 static char	*get_target_path(char **argv, t_shell *shell, int *should_free);
-static void	update_working_dirs(t_shell *shell, char *old_cwd);
+static void	update_working_dirs(t_shell *shell, char *old_cwd,
+				char **argv);
+static void	print_cd_error(char *path);
 
 int	builtin_cd(char **argv, t_shell *shell)
 {
@@ -34,9 +36,9 @@ int	builtin_cd(char **argv, t_shell *shell)
 	old_cwd = getcwd(NULL, 0);
 	ret = chdir(path);
 	if (ret == 0)
-		update_working_dirs(shell, old_cwd);
+		update_working_dirs(shell, old_cwd, argv);
 	else
-		perror("minishell: cd");
+		print_cd_error(path);
 	if (should_free)
 		free(path);
 	free(old_cwd);
@@ -62,14 +64,14 @@ static char	*get_target_path(char **argv, t_shell *shell, int *should_free)
 			ft_putendl_fd("minishell: cd: OLDPWD not set", 2);
 			return (NULL);
 		}
-		ft_putendl_fd(env_val, 1);
 		*should_free = 1;
 		return (ft_strdup(env_val));
 	}
 	return (argv[1]);
 }
 
-static void	update_working_dirs(t_shell *shell, char *old_cwd)
+static void	update_working_dirs(t_shell *shell, char *old_cwd,
+				char **argv)
 {
 	char	*new_cwd;
 
@@ -84,5 +86,13 @@ static void	update_working_dirs(t_shell *shell, char *old_cwd)
 	if (old_cwd)
 		set_env_var(shell, "OLDPWD", old_cwd);
 	set_env_var(shell, "PWD", new_cwd);
+	if (argv[1] && ft_strcmp(argv[1], "-") == 0)
+		ft_putendl_fd(new_cwd, 1);
 	free(new_cwd);
+}
+
+static void	print_cd_error(char *path)
+{
+	ft_putstr_fd("minishell: cd: ", 2);
+	perror(path);
 }

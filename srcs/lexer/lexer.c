@@ -12,19 +12,22 @@
 
 #include "minishell.h"
 
-static int		process_next_token(char *line, int *i, t_dlist **tokens);
+static int		process_next_token(char *line, int *i, t_dlist **tokens,
+					t_dlist **last);
 t_token			*create_token(t_token_type type, char *value);
 
 t_dlist	*lexer(char *line)
 {
 	t_dlist	*tokens;
+	t_dlist	*last;
 	int		i;
 
 	tokens = NULL;
+	last = NULL;
 	i = 0;
 	while (line[i])
 	{
-		if (process_next_token(line, &i, &tokens) == -1)
+		if (process_next_token(line, &i, &tokens, &last) == -1)
 		{
 			ft_dlstclear(&tokens, free_tokens);
 			return (NULL);
@@ -41,7 +44,7 @@ t_token	*create_token(t_token_type type, char *value)
 
 	token = malloc(sizeof(t_token));
 	if (!token)
-		return (NULL);
+		return (free(value), NULL);
 	token->type = type;
 	token->value = value;
 	token->was_quoted = 0;
@@ -59,9 +62,11 @@ t_token	*create_quoted_token(t_token_type type, char *value, int was_quoted)
 	return (token);
 }
 
-static int	process_next_token(char *line, int *i, t_dlist **tokens)
+static int	process_next_token(char *line, int *i, t_dlist **tokens,
+		t_dlist **last)
 {
 	t_token	*new_token;
+	t_dlist	*new_node;
 
 	skip_spaces(line, i);
 	if (!line[*i])
@@ -72,6 +77,13 @@ static int	process_next_token(char *line, int *i, t_dlist **tokens)
 		new_token = process_word_token(line, i);
 	if (!new_token)
 		return (-1);
-	ft_dlstadd_back(tokens, ft_dlstnew(new_token));
+	new_node = ft_dlstnew(new_token);
+	if (!new_node)
+		return (free_tokens(new_token), -1);
+	if (!*tokens)
+		*tokens = new_node;
+	else
+		ft_dlstadd_back(last, new_node);
+	*last = new_node;
 	return (0);
 }

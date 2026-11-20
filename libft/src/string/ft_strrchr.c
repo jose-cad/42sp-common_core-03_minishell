@@ -21,7 +21,7 @@ char	*ft_strrchr(const char *s, int c)
 	uc = (unsigned char)c;
 	while (*s)
 	{
-		if (*s == uc)
+		if ((unsigned char)*s == uc)
 			last_position = (char *)s;
 		s++;
 	}

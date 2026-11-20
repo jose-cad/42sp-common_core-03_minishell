@@ -32,15 +32,24 @@ void	ft_add_to_buffer(t_buffer *buffer, char c)
 void	ft_add_str_to_buffer(t_buffer *buffer, const char *str)
 {
 	size_t	len;
-	size_t	i;
+	size_t	space;
+	size_t	chunk;
 
 	if (!str)
 		return ;
 	len = ft_strlen(str);
-	i = 0;
-	while (i < len)
+	while (len > 0)
 	{
-		ft_add_to_buffer(buffer, str[i]);
-		i++;
+		if (buffer->index >= PF_SIZE)
+			ft_flush_buffer(buffer);
+		space = PF_SIZE - buffer->index;
+		chunk = len;
+		if (chunk > space)
+			chunk = space;
+		ft_memcpy(buffer->buf + buffer->index, str, chunk);
+		buffer->index += chunk;
+		buffer->printed_count += chunk;
+		str += chunk;
+		len -= chunk;
 	}
 }

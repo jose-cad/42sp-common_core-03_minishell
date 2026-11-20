@@ -38,7 +38,8 @@ LEXER_SRCS	= $(SRC_DIR)/lexer/lexer.c \
 EXP_SRCS	= $(SRC_DIR)/expander/expander_glob.c \
 			$(SRC_DIR)/expander/expander_var.c \
 			$(SRC_DIR)/expander/expander_word.c \
-			$(SRC_DIR)/expander/expander.c
+			$(SRC_DIR)/expander/expander_split.c \
+			$(SRC_DIR)/expander/expander_argv.c
 
 # --- Parser ---
 PARSE_SRCS	= $(SRC_DIR)/parser/parser.c \
@@ -51,7 +52,6 @@ PARSE_SRCS	= $(SRC_DIR)/parser/parser.c \
 # --- Executor ---
 EXEC_SRCS	= $(SRC_DIR)/executor/executor.c \
 			$(SRC_DIR)/executor/exec_simple_cmd.c \
-			$(SRC_DIR)/executor/exec_cmd_args.c \
 			$(SRC_DIR)/executor/exec_cmd_path.c \
 			$(SRC_DIR)/executor/exec_cmd_process.c \
 			$(SRC_DIR)/executor/exec_simple_cmd_assignment.c \
@@ -61,9 +61,9 @@ EXEC_SRCS	= $(SRC_DIR)/executor/executor.c \
 			$(SRC_DIR)/executor/exec_heredoc.c \
 			$(SRC_DIR)/executor/exec_builtin.c \
 			$(SRC_DIR)/executor/pipe/pipe_io.c \
-			$(SRC_DIR)/executor/pipe/pipe_setup.c \
 			$(SRC_DIR)/executor/redirections/redirections.c \
 			$(SRC_DIR)/executor/redirections/redirections_open.c \
+			$(SRC_DIR)/executor/redirections/redirections_target.c \
 			$(SRC_DIR)/executor/builtin/builtin_cd.c \
 			$(SRC_DIR)/executor/builtin/builtin_echo.c \
 			$(SRC_DIR)/executor/builtin/builtin_env.c \
@@ -88,7 +88,6 @@ UTIL_SRCS	= $(SRC_DIR)/utils/builtin_export_utils.c \
 			$(SRC_DIR)/utils/heredoc_utils.c \
 			$(SRC_DIR)/utils/lexer_utils.c \
 			$(SRC_DIR)/utils/parse_command_utils.c \
-			$(SRC_DIR)/utils/pipe_utils.c \
 			$(SRC_DIR)/utils/redirections_utils.c \
 			$(SRC_DIR)/utils/shell_utils.c
 
@@ -115,7 +114,7 @@ $(NAME): $(LIBFT) $(OBJS)
 	@$(CC) $(CFLAGS) $(OBJS) $(LDFLAGS) $(LIBFT_FLAGS) -o $(NAME)
 	@echo "$(GREEN)✓ $(NAME) compilado com sucesso!$(RESET)"
 
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c $(INC_DIR)/minishell.h
 	@mkdir -p $(dir $@)
 	@echo "$(YELLOW)Compilando: $<$(RESET)"
 	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@

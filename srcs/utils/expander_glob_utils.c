@@ -12,25 +12,47 @@
 
 #include "minishell.h"
 
+static void	insert_sorted(t_list **lst, char *name);
+static int	only_stars(const char *pattern);
+static int	glob_match_from(const char *pattern, const char *text,
+				const char *star, const char *mark);
+
 int	is_glob_match(const char *pattern, const char *text)
 {
-	if (*pattern == '\0' && *text == '\0')
-		return (1);
-	if (*pattern == '*')
+	return (glob_match_from(pattern, text, NULL, NULL));
+}
+
+static int	glob_match_from(const char *pattern, const char *text,
+		const char *star, const char *mark)
+{
+	while (*text)
 	{
-		while (*(pattern + 1) == '*')
+		if (*pattern == '*')
+		{
+			star = pattern++;
+			mark = text;
+		}
+		else if (*pattern == *text)
+		{
 			pattern++;
-		if (is_glob_match(pattern + 1, text))
-			return (1);
-		if (*text != '\0')
-			return (is_glob_match(pattern, text + 1));
-		return (0);
+			text++;
+		}
+		else if (!star)
+			return (0);
+		else
+		{
+			pattern = star + 1;
+			text = ++mark;
+		}
 	}
-	if (*text == '\0')
-		return (0);
-	if (*pattern == *text)
-		return (is_glob_match(pattern + 1, text + 1));
-	return (0);
+	return (only_stars(pattern));
+}
+
+static int	only_stars(const char *pattern)
+{
+	while (*pattern == '*')
+		pattern++;
+	return (*pattern == '\0');
 }
 
 t_list	*get_glob_matches(char *pattern)
@@ -51,8 +73,28 @@ t_list	*get_glob_matches(char *pattern)
 		if (entry->d_name[0] == '.' && pattern[0] != '.')
 			continue ;
 		if (is_glob_match(pattern, entry->d_name))
-			ft_lstadd_back(&matches, ft_lstnew(ft_strdup(entry->d_name)));
+			insert_sorted(&matches, entry->d_name);
 	}
 	closedir(dir);
 	return (matches);
+}
+
+static void	insert_sorted(t_list **lst, char *name)
+{
+	t_list	*new;
+	char	*copy;
+
+	copy = ft_strdup(name);
+	if (!copy)
+		return ;
+	new = ft_lstnew(copy);
+	if (!new)
+	{
+		free(copy);
+		return ;
+	}
+	while (*lst && ft_strcmp((*lst)->content, new->content) < 0)
+		lst = &(*lst)->next;
+	new->next = *lst;
+	*lst = new;
 }

@@ -13,6 +13,7 @@
 #include "minishell.h"
 
 static void	env_array_cleanup(char **envp, int i);
+static int	count_env_values(t_dlist *env_list);
 static int	convert_node_to_string(t_dlist *curr, char **envp, int i);
 
 char	**env_list_to_array(t_dlist *env_list)
@@ -22,7 +23,7 @@ char	**env_list_to_array(t_dlist *env_list)
 	int		count;
 	int		i;
 
-	count = ft_dlstsize(env_list);
+	count = count_env_values(env_list);
 	envp = malloc(sizeof(char *) * (count + 1));
 	if (!envp)
 		return (NULL);
@@ -30,13 +31,30 @@ char	**env_list_to_array(t_dlist *env_list)
 	i = 0;
 	while (curr)
 	{
-		if (convert_node_to_string(curr, envp, i) != 0)
-			return (NULL);
+		if (((t_env_var *)curr->content)->value)
+		{
+			if (convert_node_to_string(curr, envp, i) != 0)
+				return (NULL);
+			i++;
+		}
 		curr = curr->next;
-		i++;
 	}
 	envp[i] = NULL;
 	return (envp);
+}
+
+static int	count_env_values(t_dlist *env_list)
+{
+	int	count;
+
+	count = 0;
+	while (env_list)
+	{
+		if (((t_env_var *)env_list->content)->value)
+			count++;
+		env_list = env_list->next;
+	}
+	return (count);
 }
 
 static void	env_array_cleanup(char **envp, int i)

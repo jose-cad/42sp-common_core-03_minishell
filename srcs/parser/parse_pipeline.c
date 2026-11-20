@@ -40,6 +40,7 @@ t_ast	*parse_pipeline(t_dlist **tokens)
 static t_ast	*create_pipe_node(t_ast *left, t_dlist **tokens)
 {
 	t_ast	*right;
+	t_ast	*node;
 
 	*tokens = (*tokens)->next;
 	right = parse_subshell(tokens);
@@ -48,8 +49,11 @@ static t_ast	*create_pipe_node(t_ast *left, t_dlist **tokens)
 		ast_free(left);
 		return (NULL);
 	}
-	left = ast_new_node(NODE_PIPE, left, right);
-	if (!left)
-		return (NULL);
-	return (left);
+	node = ast_new_node(NODE_PIPE, left, right);
+	if (!node)
+	{
+		ast_free(left);
+		ast_free(right);
+	}
+	return (node);
 }

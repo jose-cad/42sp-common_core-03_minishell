@@ -57,11 +57,15 @@ int	env_list_set_var(t_dlist **env_list, char *assignment)
 static int	create_new_var(t_dlist **env_list, char *assignment)
 {
 	t_env_var	*new_var;
+	t_dlist		*node;
 
 	new_var = create_env_var(assignment);
 	if (!new_var)
 		return (1);
-	ft_dlstadd_back(env_list, ft_dlstnew(new_var));
+	node = ft_dlstnew(new_var);
+	if (!node)
+		return (free_env_var(new_var), 1);
+	ft_dlstadd_back(env_list, node);
 	return (0);
 }
 

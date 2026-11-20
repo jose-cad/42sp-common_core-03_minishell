@@ -28,7 +28,7 @@ t_token	*create_operator_token(char *line, int *i)
 	if (type == TOKEN_ERROR)
 		return (NULL);
 	(*i)++;
-	value = ft_substr(line, start, *i - start);
+	value = dup_slice(line + start, *i - start);
 	if (!value)
 		return (NULL);
 	return (create_token(type, value));

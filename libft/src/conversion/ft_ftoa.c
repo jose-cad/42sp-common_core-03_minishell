@@ -13,34 +13,33 @@
 #include "libft.h"
 #include <stdlib.h>
 
-static int	ft_power(int nb, int power);
-static char	*get_fraction_str(long long frac, int precision);
-static char	*ft_join_parts(char *int_str, char *frac_str);
+static long long	ft_power(long long nb, int power);
+static char			*get_fraction_str(long long frac, int precision);
+static char			*ft_join_parts(char *int_str, char *frac_str, int is_neg);
+static char			*ft_lltoa_pos(long long n);
 
 char	*ft_ftoa(double n, int precision)
 {
 	long long	int_part;
 	long long	frac_part;
-	char		*int_str;
-	char		*frac_str;
-	int			is_negative;
+	long long	mult;
+	int			is_neg;
 
 	if (precision < 0)
 		precision = 6;
-	is_negative = (n < 0);
+	is_neg = (n < 0);
 	if (n < 0)
 		n = -n;
+	mult = ft_power(10, precision);
 	int_part = (long long)n;
-	frac_part = (long long)((n - int_part) * ft_power(10, precision) + 0.5);
-	if (is_negative)
-		int_part = -int_part;
-	int_str = ft_itoa(int_part);
-	if (!int_str)
-		return (NULL);
-	frac_str = get_fraction_str(frac_part, precision);
-	if (!frac_str)
-		return (free(int_str), NULL);
-	return (ft_join_parts(int_str, frac_str));
+	frac_part = (long long)((n - int_part) * mult + 0.5);
+	if (frac_part >= mult)
+	{
+		frac_part -= mult;
+		int_part++;
+	}
+	return (ft_join_parts(ft_lltoa_pos(int_part),
+			get_fraction_str(frac_part, precision), is_neg));
 }
 
 static char	*get_fraction_str(long long frac, int precision)
@@ -62,27 +61,55 @@ static char	*get_fraction_str(long long frac, int precision)
 	return (str);
 }
 
-static char	*ft_join_parts(char *int_str, char *frac_str)
+static char	*ft_join_parts(char *int_str, char *frac_str, int is_neg)
 {
 	char	*temp;
 	char	*res;
 
-	temp = ft_strjoin(".", frac_str);
-	free(frac_str);
-	if (!temp)
+	if (!int_str || !frac_str)
+		return (free(int_str), free(frac_str), NULL);
+	if (frac_str[0] == '\0')
+		res = int_str;
+	else
 	{
+		temp = ft_strjoin(".", frac_str);
+		if (!temp)
+			return (free(int_str), free(frac_str), NULL);
+		res = ft_strjoin(int_str, temp);
 		free(int_str);
-		return (NULL);
+		free(temp);
 	}
-	res = ft_strjoin(int_str, temp);
-	free(int_str);
-	free(temp);
+	free(frac_str);
+	if (res && is_neg)
+	{
+		temp = ft_strjoin("-", res);
+		free(res);
+		return (temp);
+	}
 	return (res);
 }
 
-static int	ft_power(int nb, int power)
+static char	*ft_lltoa_pos(long long n)
 {
-	int	result;
+	char	buf[21];
+	int		i;
+
+	if (n == 0)
+		return (ft_strdup("0"));
+	i = 20;
+	buf[i] = '\0';
+	while (n > 0)
+	{
+		i--;
+		buf[i] = (n % 10) + '0';
+		n /= 10;
+	}
+	return (ft_strdup(&buf[i]));
+}
+
+static long long	ft_power(long long nb, int power)
+{
+	long long	result;
 
 	result = 1;
 	if (power < 0)

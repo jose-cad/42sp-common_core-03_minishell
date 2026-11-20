@@ -12,12 +12,12 @@
 
 #include "minishell.h"
 
-static int	exec_sequence_node(t_ast *node, t_shell *shell);
-
 int	execute_ast(t_ast *node, t_shell *shell)
 {
 	if (!node)
 		return (1);
+	if (skip_redirs(node)->type == NODE_SUBSHELL)
+		return (exec_subshell(node, shell));
 	if (node->type == NODE_COMMAND
 		|| node->type == NODE_REDIR_IN
 		|| node->type == NODE_REDIR_OUT
@@ -29,15 +29,5 @@ int	execute_ast(t_ast *node, t_shell *shell)
 		return (exec_pipeline(node, shell));
 	if (node->type == NODE_AND || node->type == NODE_OR)
 		return (exec_and_or(node, shell));
-	if (node->type == NODE_SUBSHELL)
-		return (exec_subshell(node, shell));
-	if (node->type == NODE_SEQUENCE)
-		return (exec_sequence_node(node, shell));
 	return (1);
-}
-
-static int	exec_sequence_node(t_ast *node, t_shell *shell)
-{
-	execute_ast(node->left, shell);
-	return (execute_ast(node->right, shell));
 }

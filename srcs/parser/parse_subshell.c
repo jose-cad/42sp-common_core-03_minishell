@@ -12,6 +12,25 @@
 
 #include "minishell.h"
 
+static t_ast	*parse_subshell_redirs(t_dlist **tokens, t_ast *body)
+{
+	t_ast	*node;
+	t_token	*token;
+
+	node = ast_new_node(NODE_SUBSHELL, body, NULL);
+	if (!node)
+		return (ast_free(body), NULL);
+	while (*tokens)
+	{
+		token = (*tokens)->content;
+		if (token->type < TOKEN_REDIR_IN || token->type > TOKEN_REDIR_ERR)
+			break ;
+		if (handle_redirection_token(tokens, &node) == -1)
+			return (ast_free(node), NULL);
+	}
+	return (node);
+}
+
 t_ast	*parse_subshell(t_dlist **tokens)
 {
 	t_token	*token;
@@ -28,12 +47,11 @@ t_ast	*parse_subshell(t_dlist **tokens)
 			return (NULL);
 		if (!*tokens || ((t_token *)(*tokens)->content)->type != TOKEN_RPAREN)
 		{
-			ft_putendl_fd("minishell: syntax error: expected ')'", 2);
 			ast_free(node);
 			return (NULL);
 		}
 		*tokens = (*tokens)->next;
-		return (ast_new_node(NODE_SUBSHELL, node, NULL));
+		return (parse_subshell_redirs(tokens, node));
 	}
 	else
 		return (parse_command(tokens));

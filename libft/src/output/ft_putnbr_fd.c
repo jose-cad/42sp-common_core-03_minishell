@@ -12,25 +12,25 @@
 
 #include "libft.h"
 
-static void	ft_putint(int n, int fd);
-
 void	ft_putnbr_fd(int n, int fd)
 {
-	if (n == -2147483648)
-		ft_putstr_fd("-2147483648", fd);
-	else if (n < 0)
-	{
-		ft_putchar_fd('-', fd);
-		n = -n;
-		ft_putint(n, fd);
-	}
-	else
-		ft_putint(n, fd);
-}
+	unsigned int	nbr;
+	char			buf[11];
+	int				i;
 
-static void	ft_putint(int n, int fd)
-{
-	if (n > 9)
-		ft_putint(n / 10, fd);
-	ft_putchar_fd("0123456789"[n % 10], fd);
+	if (n < 0)
+		nbr = (unsigned int)(-(long)n);
+	else
+		nbr = n;
+	i = 11;
+	if (n == 0)
+		buf[--i] = '0';
+	while (nbr > 0)
+	{
+		buf[--i] = (nbr % 10) + '0';
+		nbr /= 10;
+	}
+	if (n < 0)
+		buf[--i] = '-';
+	write(fd, buf + i, 11 - i);
 }

@@ -12,67 +12,89 @@
 
 #include "minishell.h"
 
-static char	*append_char(char *result, char c);
-static int	process_quote_state(char c, int *in_squote, int *in_dquote);
-static void	handle_char_append(char **result, char c, int *i);
 static void	handle_variable_expansion(char *word, int *i,
-				t_shell *shell, char **result);
+				t_shell *shell, t_buf *buf);
 
 char	*expand_word(char *word, t_shell *shell)
 {
-	char	*result;
+	t_buf	buf;
 	int		i;
 	int		in_squote;
 	int		in_dquote;
 
-	result = ft_strdup("");
-	if (!result)
+	buf.len = 0;
+	buf.cap = ft_strlen(word) + 1;
+	buf.str = malloc(buf.cap);
+	if (!buf.str)
 		return (NULL);
+	buf.str[0] = '\0';
 	i = 0;
 	in_squote = 0;
 	in_dquote = 0;
-	while (word[i])
+	while (word[i] && buf.str)
 	{
 		if (process_quote_state(word[i], &in_squote, &in_dquote))
-		{
 			i++;
-			continue ;
-		}
-		if (word[i] == '$' && !in_squote && (word[i + 1] == '?'
+		else if (word[i] == '$' && !in_squote && (word[i + 1] == '?'
 				|| ft_isalnum_or_underscore(word[i + 1])))
-			handle_variable_expansion(word, &i, shell, &result);
+			handle_variable_expansion(word, &i, shell, &buf);
 		else
-			handle_char_append(&result, word[i], &i);
+			append_literal(word, &i, &buf);
 	}
-	return (result);
+	return (buf.str);
 }
 
 static void	handle_variable_expansion(char *word, int *i,
-				t_shell *shell, char **result)
+				t_shell *shell, t_buf *buf)
 {
 	char	*var_value;
 
 	var_value = expand_variable(word, i, shell);
-	*result = ft_strjoin_free(*result, var_value);
+	if (!var_value)
+	{
+		free(buf->str);
+		buf->str = NULL;
+		return ;
+	}
+	buf_append(buf, var_value, ft_strlen(var_value));
 	free(var_value);
 }
 
-static void	handle_char_append(char **result, char c, int *i)
+void	append_literal(char *word, int *i, t_buf *buf)
 {
-	*result = append_char(*result, c);
+	int	start;
+
+	start = *i;
 	(*i)++;
+	while (word[*i] && word[*i] != '\'' && word[*i] != '"' && word[*i] != '$')
+		(*i)++;
+	buf_append(buf, word + start, *i - start);
 }
 
-static char	*append_char(char *result, char c)
+char	*expand_heredoc_line(char *line, t_shell *shell)
 {
-	char	temp[2];
+	t_buf	buf;
+	int		i;
 
-	temp[0] = c;
-	temp[1] = '\0';
-	return (ft_strjoin_free(result, temp));
+	buf.len = 0;
+	buf.cap = ft_strlen(line) + 1;
+	buf.str = malloc(buf.cap);
+	if (!buf.str)
+		return (NULL);
+	buf.str[0] = '\0';
+	i = 0;
+	while (line[i] && buf.str)
+	{
+		if (line[i] == '$' && (line[i + 1] == '?'
+				|| ft_isalnum_or_underscore(line[i + 1])))
+			handle_variable_expansion(line, &i, shell, &buf);
+		else
+			append_literal(line, &i, &buf);
+	}
+	return (buf.str);
 }
 
-static int	process_quote_state(char c, int *in_squote, int *in_dquote)
+int	process_quote_state(char c, int *in_squote, int *in_dquote)
 {
 	if (c == '\'')
 	{

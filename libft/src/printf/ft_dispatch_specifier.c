@@ -16,7 +16,7 @@ char	*ft_dispatch_specifier(char spec, va_list args, t_format *fmt)
 {
 	int			i;
 	static char	*(*handlers[])(t_format *, va_list) = {
-		ft_handle_char, ft_handle_string, ft_handle_decimal, ft_handle_integer,
+		ft_handle_char, ft_handle_string, ft_handle_decimal, ft_handle_decimal,
 		ft_handle_unsigned, ft_handle_hex, ft_handle_hex, ft_handle_pointer,
 		ft_handle_percent, ft_handle_float, ft_handle_octal, NULL
 	};

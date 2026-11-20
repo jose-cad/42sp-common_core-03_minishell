@@ -12,6 +12,12 @@
 
 #include "minishell.h"
 
+static int	expansion_failed(t_shell *shell)
+{
+	shell->exit_status = 1;
+	return (1);
+}
+
 int	exec_simple_cmd(t_ast *node, t_shell *shell)
 {
 	t_ast	*cmd_node;
@@ -24,18 +30,13 @@ int	exec_simple_cmd(t_ast *node, t_shell *shell)
 		return (handle_redirect_only(node, shell));
 	if (!cmd_node || !cmd_node->argv || !cmd_node->argv[0])
 		return (0);
-	expand_variables(cmd_node->argv, shell);
-	cmd_node->argv = remove_empty_args(cmd_node->argv);
+	if (expand_argv(cmd_node, shell) != 0)
+		return (expansion_failed(shell));
 	if (is_empty_command(cmd_node->argv))
 		return (handle_empty_after_expand(node, shell, cmd_node));
-	if (should_expand_wildcards(cmd_node->argv, cmd_node->argv_quoted))
-	{
-		if (expand_wildcards(&(cmd_node->argv)) != 0)
-		{
-			shell->exit_status = 1;
-			return (shell->exit_status);
-		}
-	}
+	if (should_expand_wildcards(cmd_node->argv, cmd_node->argv_quoted)
+		&& expand_wildcards(&(cmd_node->argv), cmd_node->argv_quoted) != 0)
+		return (expansion_failed(shell));
 	if (is_empty_command(cmd_node->argv))
 		return (handle_empty_after_expand(node, shell, cmd_node));
 	return (process_command(node, shell, cmd_node));

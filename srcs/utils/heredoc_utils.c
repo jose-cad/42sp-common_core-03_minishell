@@ -12,6 +12,48 @@
 
 #include "minishell.h"
 
+static char	*heredoc_path(int n)
+{
+	char	*num;
+	char	*path;
+
+	num = ft_itoa(n);
+	if (!num)
+		return (NULL);
+	path = ft_strjoin("/tmp/.minishell_heredoc_", num);
+	free(num);
+	return (path);
+}
+
+int	open_heredoc_file(int *fds)
+{
+	int		n;
+	char	*path;
+
+	n = 0;
+	fds[1] = -1;
+	while (fds[1] < 0)
+	{
+		path = heredoc_path(n++);
+		if (!path)
+			return (-1);
+		if (access(path, F_OK) == 0)
+		{
+			free(path);
+			continue ;
+		}
+		fds[1] = open(path, O_WRONLY | O_CREAT | O_EXCL, 0600);
+		if (fds[1] < 0)
+			return (free(path), -1);
+	}
+	fds[0] = open(path, O_RDONLY);
+	unlink(path);
+	free(path);
+	if (fds[0] < 0)
+		return (close(fds[1]), -1);
+	return (0);
+}
+
 int	handle_heredoc_interrupt(int *pipe_fds)
 {
 	close(pipe_fds[0]);
@@ -35,7 +77,7 @@ int	process_heredoc_line(char *line, t_ast *node, int write_fd, t_shell *shell)
 		return (1);
 	}
 	if (node->heredoc_expand)
-		expanded_line = expand_word(line, shell);
+		expanded_line = expand_heredoc_line(line, shell);
 	else
 		expanded_line = line;
 	ft_putendl_fd(expanded_line, write_fd);
@@ -47,25 +89,24 @@ int	process_heredoc_line(char *line, t_ast *node, int write_fd, t_shell *shell)
 
 char	*read_heredoc_line(void)
 {
-	char	buffer[1024];
+	t_buf	buf;
 	char	ch;
-	int		i;
 	int		bytes_read;
 
-	i = 0;
-	while (i < 1023)
+	buf.len = 0;
+	buf.cap = 128;
+	buf.str = malloc(buf.cap);
+	if (!buf.str)
+		return (NULL);
+	buf.str[0] = '\0';
+	while (buf.str)
 	{
 		bytes_read = read(STDIN_FILENO, &ch, 1);
-		if (bytes_read <= 0)
-		{
-			if (i == 0)
-				return (NULL);
+		if (bytes_read <= 0 && buf.len == 0)
+			return (free(buf.str), NULL);
+		if (bytes_read <= 0 || ch == '\n')
 			break ;
-		}
-		if (ch == '\n')
-			break ;
-		buffer[i++] = ch;
+		buf_append(&buf, &ch, 1);
 	}
-	buffer[i] = '\0';
-	return (ft_strdup(buffer));
+	return (buf.str);
 }

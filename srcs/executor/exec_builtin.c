@@ -32,16 +32,8 @@ int	exec_builtin(t_ast *node, t_shell *shell)
 	else if (ft_strcmp(node->argv[0], "export") == 0)
 		return (builtin_export(node->argv, shell));
 	else if (ft_strcmp(node->argv[0], "pwd") == 0)
-		return (builtin_pwd());
+		return (builtin_pwd(shell));
 	else if (ft_strcmp(node->argv[0], "unset") == 0)
 		return (builtin_unset(node->argv, shell));
 	return (1);
-}
-
-int	exec_builtin_child(t_ast *node, t_shell *shell)
-{
-	int	code;
-
-	code = exec_builtin(node, shell);
-	exit(code);
 }

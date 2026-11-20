@@ -12,7 +12,6 @@
 
 #include "minishell.h"
 
-static int	validate_key(char *assignment);
 static int	is_valid_key_char(char c);
 
 int	handle_assignment_only(t_ast *node, t_shell *shell)
@@ -41,7 +40,7 @@ static int	is_valid_key_char(char c)
 	return (0);
 }
 
-static int	validate_key(char *assignment)
+int	validate_key(char *assignment)
 {
 	int	i;
 

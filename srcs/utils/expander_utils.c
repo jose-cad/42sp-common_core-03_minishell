@@ -62,3 +62,54 @@ int	should_expand_wildcards(char **argv, int *argv_quoted)
 	}
 	return (0);
 }
+
+void	buf_append(t_buf *buf, const char *s, size_t n)
+{
+	char	*new_str;
+
+	if (!buf->str)
+		return ;
+	if (buf->len + n + 1 > buf->cap)
+	{
+		while (buf->len + n + 1 > buf->cap)
+			buf->cap *= 2;
+		new_str = malloc(buf->cap);
+		if (new_str)
+			ft_memcpy(new_str, buf->str, buf->len);
+		free(buf->str);
+		buf->str = new_str;
+		if (!new_str)
+			return ;
+	}
+	ft_memcpy(buf->str + buf->len, s, n);
+	buf->len += n;
+	buf->str[buf->len] = '\0';
+}
+
+int	words_push(t_words *words, char *word, int quoted)
+{
+	char	**new_argv;
+	int		*new_quoted;
+	int		new_cap;
+
+	if (!word)
+		return (1);
+	if (words->len + 1 >= words->cap)
+	{
+		new_cap = words->cap * 2 + 8;
+		new_argv = ft_calloc(new_cap, sizeof(char *));
+		new_quoted = ft_calloc(new_cap, sizeof(int));
+		if (!new_argv || !new_quoted)
+			return (free(new_argv), free(new_quoted), free(word), 1);
+		ft_memcpy(new_argv, words->argv, words->len * sizeof(char *));
+		ft_memcpy(new_quoted, words->quoted, words->len * sizeof(int));
+		free(words->argv);
+		free(words->quoted);
+		words->argv = new_argv;
+		words->quoted = new_quoted;
+		words->cap = new_cap;
+	}
+	words->argv[words->len] = word;
+	words->quoted[words->len++] = quoted;
+	return (0);
+}

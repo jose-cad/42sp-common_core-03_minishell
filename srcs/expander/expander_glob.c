@@ -5,81 +5,71 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: jose-cad <jose-cad@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/12/01 16:00:53 by jose-cad          #+#    #+#             */
-/*   Updated: 2025/12/01 16:00:55 by jose-cad         ###   ########.fr       */
+/*   Created: 2025/12/01 13:02:27 by jose-cad          #+#    #+#             */
+/*   Updated: 2025/12/01 13:02:32 by jose-cad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-static void		transfer_matches_to_list(t_list **new_arg_list,
-					t_list **matches);
-static char		**finalize_wildcard_expansion(char **old_argv,
-					t_list *new_arg_list);
-static void		process_wildcard_arg(char *arg, t_list **new_arg_list);
+static int	finalize_wildcard_expansion(char ***argv_ptr, t_list *list);
+static int	process_wildcard_arg(char *arg, int quoted, t_list ***end);
 
-int	expand_wildcards(char ***argv_ptr)
+int	expand_wildcards(char ***argv_ptr, int *quoted)
 {
-	char	**old_argv;
 	t_list	*new_arg_list;
+	t_list	**end;
 	int		i;
 
-	old_argv = *argv_ptr;
 	new_arg_list = NULL;
+	end = &new_arg_list;
 	i = 0;
-	while (old_argv[i])
+	while ((*argv_ptr)[i])
 	{
-		process_wildcard_arg(old_argv[i], &new_arg_list);
+		if (process_wildcard_arg((*argv_ptr)[i], quoted[i], &end) != 0)
+			return (ft_lstclear(&new_arg_list, free), 1);
 		i++;
 	}
-	*argv_ptr = finalize_wildcard_expansion(old_argv, new_arg_list);
-	if (!*argv_ptr)
-		return (1);
+	return (finalize_wildcard_expansion(argv_ptr, new_arg_list));
+}
+
+static int	process_wildcard_arg(char *arg, int quoted, t_list ***end)
+{
+	t_list	*matches;
+	char	*copy;
+
+	matches = NULL;
+	if (!quoted && ft_strchr(arg, '*') != NULL)
+		matches = get_glob_matches(arg);
+	if (!matches)
+	{
+		copy = ft_strdup(arg);
+		if (copy)
+			matches = ft_lstnew(copy);
+		if (!matches)
+			return (free(copy), 1);
+	}
+	**end = matches;
+	while (**end)
+		*end = &(**end)->next;
 	return (0);
 }
 
-static void	process_wildcard_arg(char *arg, t_list **new_arg_list)
-{
-	t_list	*matches;
-
-	matches = NULL;
-	if (ft_strchr(arg, '*') != NULL)
-	{
-		matches = get_glob_matches(arg);
-		if (matches)
-		{
-			transfer_matches_to_list(new_arg_list, &matches);
-			return ;
-		}
-	}
-	ft_lstadd_back(new_arg_list, ft_lstnew(ft_strdup(arg)));
-}
-
-static void	transfer_matches_to_list(t_list **new_arg_list, t_list **matches)
-{
-	t_list	*temp;
-
-	while (*matches)
-	{
-		temp = *matches;
-		*matches = (*matches)->next;
-		temp->next = NULL;
-		ft_lstadd_back(new_arg_list, temp);
-	}
-}
-
-static char	**finalize_wildcard_expansion(char **old_argv, t_list *new_arg_list)
+static int	finalize_wildcard_expansion(char ***argv_ptr, t_list *list)
 {
 	t_list	*temp;
 	char	**new_argv;
 
-	free_char_array(old_argv);
-	new_argv = ft_lst_to_array(new_arg_list);
-	while (new_arg_list)
+	new_argv = ft_lst_to_array(list);
+	if (!new_argv)
+		return (ft_lstclear(&list, free), 1);
+	free_char_array(*argv_ptr);
+	*argv_ptr = new_argv;
+	while (list)
 	{
-		temp = new_arg_list;
-		new_arg_list = new_arg_list->next;
+		temp = list;
+		list = list->next;
 		free(temp);
 	}
-	return (new_argv);
+	return (0);
 }

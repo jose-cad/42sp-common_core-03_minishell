@@ -44,10 +44,15 @@ t_ast	*parse_tokens(t_dlist *tokens)
 	if (!current)
 		return (NULL);
 	root = parse_list(&current);
-	if (!root)
+	if (!root || current)
 	{
-		ft_putendl_fd(
-			"minishell: syntax error near unexpected token `newline'", 2);
+		ast_free(root);
+		if (current)
+			ft_dprintf(2, "minishell: syntax error near unexpected token "
+				"`%s'\n", ((t_token *)current->content)->value);
+		else
+			ft_putendl_fd(
+				"minishell: syntax error near unexpected token `newline'", 2);
 		return (NULL);
 	}
 	return (root);

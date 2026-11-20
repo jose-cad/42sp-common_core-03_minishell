@@ -37,6 +37,7 @@ CONVERSION_SRC	= ft_ato_bin.c \
 		ft_atoi_base.c \
 		ft_atoi.c \
 		ft_atol.c \
+		ft_atoul_base.c \
 		ft_ato_octa.c \
 		ft_base_is_valid.c \
 		ft_bin_toa.c \
@@ -104,7 +105,6 @@ PRINTF_SRC	= ft_buffer.c \
 		ft_handle_decimal.c \
 		ft_handle_float.c \
 		ft_handle_hex.c \
-		ft_handle_integer.c \
 		ft_handle_octal.c \
 		ft_handle_percent.c \
 		ft_handle_pointer.c \
@@ -126,8 +126,7 @@ STRING_SRC	= ft_strchr.c \
 		ft_strnstr.c \
 		ft_strrchr.c
 
-UTILS_SRC	= ft_count_digits.c \
-		ft_split.c \
+UTILS_SRC	= ft_split.c \
 		ft_striteri.c \
 		ft_strjoin.c \
 		ft_strjoin_free.c \
@@ -176,6 +175,7 @@ OBJS_BASE = $(ALLOC_OBJS) $(CONVERSION_OBJS) $(CTYPE_OBJS) $(DLIST_OBJS) \
 
 # All objects (with printf)
 OBJS = $(OBJS_BASE) $(PRINTF_OBJS)
+DEPS = $(OBJS:.o=.d)
 
 # Colors for output
 GREEN	= \033[0;32m
@@ -196,68 +196,17 @@ $(NAME): $(OBJS)
 # Create library without printf (for restricted projects)
 nopf: $(OBJS_BASE)
 	@echo "$(YELLOW)Creating library $(NAME) without printf...$(NC)"
+	@$(RM) $(NAME)
 	@$(AR) $(NAME) $(OBJS_BASE)
 	@echo "$(BLUE)Library $(NAME) created successfully without printf!$(NC)"
 
-# Create object directories
-$(OBJ_DIR):
-	@mkdir -p $(OBJ_DIR)
-	@mkdir -p $(OBJ_DIR)/alloc
-	@mkdir -p $(OBJ_DIR)/conversion
-	@mkdir -p $(OBJ_DIR)/ctype
-	@mkdir -p $(OBJ_DIR)/dlist
-	@mkdir -p $(OBJ_DIR)/gnl
-	@mkdir -p $(OBJ_DIR)/list
-	@mkdir -p $(OBJ_DIR)/memory
-	@mkdir -p $(OBJ_DIR)/output
-	@mkdir -p $(OBJ_DIR)/printf
-	@mkdir -p $(OBJ_DIR)/string
-	@mkdir -p $(OBJ_DIR)/utils
-
-# Compile object files by category
-$(OBJ_DIR)/alloc/%.o: $(SRC_DIR)/alloc/%.c | $(OBJ_DIR)
+# Compile object files
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
+	@mkdir -p $(dir $@)
 	@echo "$(YELLOW)Compiling $<...$(NC)"
-	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+	@$(CC) $(CFLAGS) -MMD -MP $(INCLUDES) -c $< -o $@
 
-$(OBJ_DIR)/conversion/%.o: $(SRC_DIR)/conversion/%.c | $(OBJ_DIR)
-	@echo "$(YELLOW)Compiling $<...$(NC)"
-	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
-
-$(OBJ_DIR)/ctype/%.o: $(SRC_DIR)/ctype/%.c | $(OBJ_DIR)
-	@echo "$(YELLOW)Compiling $<...$(NC)"
-	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
-
-$(OBJ_DIR)/dlist/%.o: $(SRC_DIR)/dlist/%.c | $(OBJ_DIR)
-	@echo "$(YELLOW)Compiling $<...$(NC)"
-	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
-
-$(OBJ_DIR)/gnl/%.o: $(SRC_DIR)/gnl/%.c | $(OBJ_DIR)
-	@echo "$(YELLOW)Compiling $<...$(NC)"
-	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
-
-$(OBJ_DIR)/list/%.o: $(SRC_DIR)/list/%.c | $(OBJ_DIR)
-	@echo "$(YELLOW)Compiling $<...$(NC)"
-	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
-
-$(OBJ_DIR)/memory/%.o: $(SRC_DIR)/memory/%.c | $(OBJ_DIR)
-	@echo "$(YELLOW)Compiling $<...$(NC)"
-	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
-
-$(OBJ_DIR)/output/%.o: $(SRC_DIR)/output/%.c | $(OBJ_DIR)
-	@echo "$(YELLOW)Compiling $<...$(NC)"
-	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
-
-$(OBJ_DIR)/printf/%.o: $(SRC_DIR)/printf/%.c | $(OBJ_DIR)
-	@echo "$(YELLOW)Compiling $<...$(NC)"
-	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
-
-$(OBJ_DIR)/string/%.o: $(SRC_DIR)/string/%.c | $(OBJ_DIR)
-	@echo "$(YELLOW)Compiling $<...$(NC)"
-	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
-
-$(OBJ_DIR)/utils/%.o: $(SRC_DIR)/utils/%.c | $(OBJ_DIR)
-	@echo "$(YELLOW)Compiling $<...$(NC)"
-	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+-include $(DEPS)
 
 # Clean object files and directories
 clean:

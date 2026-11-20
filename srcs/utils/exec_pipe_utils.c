@@ -46,20 +46,6 @@ int	handle_fork_error(int *pipe_fds, pid_t pid_to_wait)
 	return (1);
 }
 
-int	handle_left_builtin(t_ast *left, t_shell *shell)
-{
-	int	exit_status;
-
-	exit_status = 0;
-	if (left->type == NODE_COMMAND && is_state_changing_builtin(left))
-	{
-		exit_status = exec_builtin(left, shell);
-		if (exit_status != 0)
-			return (exit_status);
-	}
-	return (0);
-}
-
 static void	print_pipe_output(int status_right)
 {
 	if (WIFSIGNALED(status_right))

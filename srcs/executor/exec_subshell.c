@@ -12,6 +12,16 @@
 
 #include "minishell.h"
 
+static void	subshell_child(t_ast *node, t_shell *shell)
+{
+	setup_signals_child();
+	shell->is_child = 1;
+	if (apply_redirections(node, shell) != 0)
+		clean_exit_child(shell, EXIT_FAILURE);
+	execute_ast(skip_redirs(node)->left, shell);
+	clean_exit_child(shell, shell->exit_status);
+}
+
 int	exec_subshell(t_ast *node, t_shell *shell)
 {
 	pid_t	pid;
@@ -26,26 +36,13 @@ int	exec_subshell(t_ast *node, t_shell *shell)
 		return (perror("fork"), 1);
 	}
 	if (pid == 0)
-	{
-		setup_signals_child();
-		execute_ast(node->left, shell);
-		clean_exit_child(shell, shell->exit_status);
-	}
+		subshell_child(node, shell);
 	waitpid(pid, &status, 0);
+	print_signal_output(status);
 	setup_signals();
 	if (WIFEXITED(status))
 		shell->exit_status = WEXITSTATUS(status);
 	else if (WIFSIGNALED(status))
 		shell->exit_status = 128 + WTERMSIG(status);
 	return (shell->exit_status);
-}
-
-int	is_state_changing_builtin(t_ast *node)
-{
-	if (!node || !node->argv || !node->argv[0])
-		return (0);
-	return (!ft_strcmp(node->argv[0], "cd")
-		|| !ft_strcmp(node->argv[0], "exit")
-		|| !ft_strcmp(node->argv[0], "export")
-		|| !ft_strcmp(node->argv[0], "unset"));
 }

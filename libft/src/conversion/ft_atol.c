@@ -14,12 +14,12 @@
 
 long	ft_atol(const char *nptr)
 {
-	int		sign;
-	long	result;
+	int				sign;
+	unsigned long	result;
 
 	sign = 1;
 	result = 0;
-	while (*nptr == ' ' || (*nptr >= 9 && *nptr <= 13))
+	while (ft_isspace(*nptr))
 		nptr++;
 	if (*nptr == '-' || *nptr == '+')
 	{
