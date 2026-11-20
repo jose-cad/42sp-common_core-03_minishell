@@ -224,6 +224,7 @@ void		setup_pipe_input(t_shell *shell, int *pipe_fds);
 void		setup_pipe_output(t_shell *shell, int *pipe_fds);
 void		setup_signals(void);
 void		setup_signals_child(void);
+void		setup_signals_wait(void);
 int			should_expand_wildcards(char **argv, int *argv_quoted);
 t_ast		*skip_redirs(t_ast *node);
 void		skip_spaces(char *line, int *i);

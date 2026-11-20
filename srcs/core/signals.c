@@ -41,3 +41,20 @@ void	setup_signals_child(void)
 	signal(SIGINT, SIG_DFL);
 	signal(SIGQUIT, SIG_DFL);
 }
+
+static void	record_signal(int sig)
+{
+	g_signal = sig;
+}
+
+void	setup_signals_wait(void)
+{
+	struct sigaction	sa;
+
+	ft_bzero(&sa, sizeof(sa));
+	sa.sa_handler = record_signal;
+	sa.sa_flags = SA_RESTART;
+	sigemptyset(&sa.sa_mask);
+	sigaction(SIGINT, &sa, NULL);
+	sigaction(SIGQUIT, &sa, NULL);
+}

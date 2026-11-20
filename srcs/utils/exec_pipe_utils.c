@@ -12,7 +12,7 @@
 
 #include "minishell.h"
 
-static void	print_pipe_output(int status_right);
+static void	print_pipe_output(void);
 
 int	parent_wait_and_close(pid_t pid_left, pid_t pid_right, int *pipe_fds)
 {
@@ -24,7 +24,8 @@ int	parent_wait_and_close(pid_t pid_left, pid_t pid_right, int *pipe_fds)
 	close(pipe_fds[1]);
 	waitpid(pid_right, &status_right, 0);
 	waitpid(pid_left, &status_left, 0);
-	print_pipe_output(status_right);
+	print_pipe_output();
+	g_signal = 0;
 	setup_signals();
 	if (WIFEXITED(status_right))
 		ret = WEXITSTATUS(status_right);
@@ -46,20 +47,12 @@ int	handle_fork_error(int *pipe_fds, pid_t pid_to_wait)
 	return (1);
 }
 
-static void	print_pipe_output(int status_right)
+static void	print_pipe_output(void)
 {
-	if (WIFSIGNALED(status_right))
-	{
-		if (WTERMSIG(status_right) == SIGINT)
-			write(STDOUT_FILENO, "\n", 1);
-		else if (WTERMSIG(status_right) == SIGQUIT)
-			write(STDERR_FILENO, "Quit (core dumped)\n", 19);
-	}
-	else if (WIFEXITED(status_right))
-	{
-		if (WEXITSTATUS(status_right) == 130)
-			write(STDOUT_FILENO, "\n", 1);
-		else if (WEXITSTATUS(status_right) == 131)
-			write(STDERR_FILENO, "Quit (core dumped)\n", 19);
-	}
+	if (!isatty(STDIN_FILENO) || !isatty(STDOUT_FILENO))
+		return ;
+	if (g_signal == SIGINT)
+		write(STDOUT_FILENO, "\n", 1);
+	else if (g_signal == SIGQUIT)
+		write(STDERR_FILENO, "Quit (core dumped)\n", 19);
 }

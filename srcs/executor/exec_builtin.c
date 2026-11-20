@@ -22,7 +22,7 @@ int	exec_builtin(t_ast *node, t_shell *shell)
 	{
 		if (node->argv[1] != NULL)
 		{
-			ft_dprintf(2, "minishell: env: argumentos demais\n");
+			ft_dprintf(2, "minishell: env: too many arguments\n");
 			return (1);
 		}
 		return (builtin_env(shell));

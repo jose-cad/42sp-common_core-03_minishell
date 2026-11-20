@@ -30,10 +30,10 @@ int	exec_pipe(t_ast *left, t_ast *right, t_shell *shell)
 	pid_t	pid_left;
 	pid_t	pid_right;
 
-	signal(SIGINT, SIG_IGN);
-	signal(SIGQUIT, SIG_IGN);
 	if (pipe(pipe_fds) == -1)
 		return (perror("pipe"), 1);
+	g_signal = 0;
+	setup_signals_wait();
 	pid_left = fork_left_child(left, shell, pipe_fds);
 	if (pid_left == -1)
 		return (1);

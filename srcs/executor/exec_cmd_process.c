@@ -63,7 +63,8 @@ static void	execute_external_cmd(t_ast *cmd_node, t_shell *shell)
 	}
 	close_heredoc_fds(shell->ast);
 	execve(path, cmd_node->argv, envp);
-	perror("execve");
+	ft_putstr_fd("minishell: ", 2);
+	perror(cmd_node->argv[0]);
 	free_char_array(envp);
 	free(path);
 	clean_exit_child(shell, 126);
